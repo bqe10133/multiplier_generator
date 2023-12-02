@@ -1,0 +1,39 @@
+#-------------------------------------------------------------------------------
+# version 1.1 July 24,2023
+#-------------------------------------------------------------------------------
+f_BIT0_0 0 0 0 sim_and pe_BIT0_0 pe_BIT0_1
+f_BIT1_0 0 0 0 sim_and pe_BIT1_0 pe_BIT1_1
+f_BIT2_0 0 0 0 sim_and pe_BIT2_0 pe_BIT2_1
+f_BIT3_0 0 0 0 sim_and pe_BIT3_0 pe_BIT3_1
+f_BIT0_1 0 0 0 sim_or pe_BIT0_0 pe_BIT0_1
+f_BIT1_1 0 0 0 sim_or pe_BIT1_0 pe_BIT1_1
+f_BIT2_1 0 0 0 sim_or pe_BIT2_0 pe_BIT2_1
+f_BIT3_1 0 0 0 sim_or pe_BIT3_0 pe_BIT3_1
+f_BIT0_2 0 0 0 sim_exor pe_BIT0_0 pe_BIT0_1
+f_BIT1_2 0 0 0 sim_exor pe_BIT1_0 pe_BIT1_1
+f_BIT2_2 0 0 0 sim_exor pe_BIT2_0 pe_BIT2_1
+f_BIT3_2 0 0 0 sim_exor pe_BIT3_0 pe_BIT3_1
+f_BIT0_3 0 0 0 sim_and f_BIT0_1 f_BIT1_1
+f_BIT1_3 0 0 0 sim_and f_BIT1_1 f_BIT0_0
+f_BIT2_3 0 0 0 sim_and f_BIT2_1 f_BIT3_1
+f_BIT3_3 0 0 0 sim_and f_BIT3_1 f_BIT2_0
+f_BIT0_4 0 0 0 sim_or f_BIT1_0 f_BIT1_3
+f_BIT1_4 0 0 0 sim_and f_BIT2_1 f_BIT0_3
+f_BIT2_4 0 0 0 sim_or f_BIT3_0 f_BIT3_3
+f_BIT3_4 0 0 0 sim_and f_BIT2_3 f_BIT0_3
+f_BIT0_5 0 0 0 sim_and f_BIT2_1 f_BIT0_4
+f_BIT1_5 0 0 0 sim_or f_BIT2_0 f_BIT0_5
+f_BIT2_5 0 0 0 sim_and f_BIT2_3 f_BIT0_4
+f_BIT3_5 0 0 0 sim_or f_BIT2_4 f_BIT2_5
+f_BIT0_6 0 0 0 sim_and f_BIT0_1 f_BIT4_7  
+f_BIT1_6 0 0 0 sim_and f_BIT0_3 f_BIT4_7  
+f_BIT2_6 0 0 0 sim_and f_BIT1_4 f_BIT4_7  
+f_BIT3_6 0 0 0 sim_and f_BIT3_4 f_BIT4_7  
+f_BIT0_7 0 0 0 sim_or f_BIT0_0 f_BIT0_6
+f_BIT1_7 0 0 0 sim_or f_BIT0_4 f_BIT1_6
+f_BIT2_7 0 0 0 sim_or f_BIT1_5 f_BIT2_6
+f_BIT3_7 0 0 0 sim_or f_BIT3_5 f_BIT3_6
+s_BIT0_8 0 0 0 sim_exor f_BIT0_2 f_BIT4_7  
+s_BIT1_8 0 0 0 sim_exor f_BIT1_2 f_BIT0_7
+s_BIT2_8 0 0 0 sim_exor f_BIT2_2 f_BIT1_7
+s_BIT3_8 0 0 0 sim_exor f_BIT3_2 f_BIT2_7

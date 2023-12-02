@@ -1,0 +1,128 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+<script type="text/javascript">
+
+//------------------------------------------------------------------------------
+// version 1.1 July 24,2023
+//------------------------------------------------------------------------------
+
+window.onload = function() {
+  draw();
+};
+
+function draw() {
+  var canvas = document.getElementById("canvas");
+  var ctx = canvas.getContext("2d");
+
+ctx.fillStyle = "#000000";
+ctx.fillRect(0,0,1400,3000);
+
+ctx.font = '14px Helvetica';
+//AND gate
+ctx.fillStyle = "#880000";
+ctx.fillRect(20,20,15,15);
+ctx.fillStyle = "#ffffff";
+ctx.fillText('AND gate', 50, 35);
+//OR gate 
+ctx.fillStyle = "#008800";
+ctx.fillRect(140,20,15,15);
+ctx.fillStyle = "#ffffff";
+ctx.fillText('OR gate', 170, 35);
+//EXOR gate
+ctx.fillStyle = "#000088";
+ctx.fillRect(260,20,15,15);
+ctx.fillStyle = "#ffffff";
+ctx.fillText('EXOR gate',290, 35);
+//half adder
+ctx.fillStyle = "#888800";
+ctx.fillRect(400,20,30,15);
+ctx.fillStyle = "#ffffff";
+ctx.fillText('half adder', 450, 35);
+//full adder
+ctx.fillStyle = "#880088";
+ctx.fillRect(550,20,30,15);
+ctx.fillStyle = "#ffffff";
+ctx.fillText('full adder', 600, 35);
+//input         
+ctx.fillStyle = "#888888";
+ctx.fillRect(20,60,15,15);
+ctx.fillStyle = "#ffffff";
+ctx.fillText('input a,b', 50, 75);
+//wire          
+ctx.fillStyle = "#008888";
+ctx.fillRect(170,60,15,15);
+ctx.fillStyle = "#ffffff";
+ctx.fillText('wire(no logic of tree)', 200, 75);
+//cla4b
+ctx.beginPath();
+ctx.moveTo(380,60);
+ctx.lineTo(400,60);
+ctx.lineTo(400,80);
+ctx.lineTo(380,80);
+ctx.lineTo(380,60);
+ctx.strokeStyle="white";
+ctx.lineWidth=1;
+ctx.stroke();
+ctx.beginPath();
+ctx.fillStyle = "#ffffff";
+ctx.fillText('cla4b', 410, 75);
+
+//bit number
+ctx.font = '14px Helvetica';
+ctx.fillStyle = "#ffffff";
+ctx.fillText('0',   2,230);
+ctx.fillText('1',  22,230);
+ctx.fillText('2',  42,230);
+ctx.fillText('3',  62,230);
+ctx.fillText('4',  82,230);
+ctx.fillText('5', 102,230);
+ctx.fillText('6', 122,230);
+ctx.fillText('7', 142,230);
+ctx.fillText('8', 162,230);
+ctx.fillText('9', 182,230);
+ctx.fillText('10',202,230);
+ctx.fillText('11',222,230);
+ctx.fillText('12',242,230);
+ctx.fillText('13',262,230);
+ctx.fillText('14',282,230);
+ctx.fillText('15',302,230);
+ctx.fillText('16',322,230);
+ctx.fillText('17',342,230);
+ctx.fillText('18',362,230);
+ctx.fillText('19',382,230);
+ctx.fillText('20',402,230);
+ctx.fillText('21',422,230);
+ctx.fillText('22',442,230);
+ctx.fillText('23',462,230);
+ctx.fillText('24',482,230);
+ctx.fillText('25',502,230);
+ctx.fillText('26',522,230);
+ctx.fillText('27',542,230);
+ctx.fillText('28',562,230);
+ctx.fillText('29',582,230);
+ctx.fillText('30',602,230);
+ctx.fillText('31',622,230);
+// multiplier starts here.
+
+
+
+
+
+
+ctx.fillStyle = "#000000";
+ctx.fillRect(0,0,1,1);
+
+}
+
+</script>
+</head>
+<body>
+ <canvas id="canvas" width="1400" height="3000"></canvas>
+</body>
+
+</html>
+
+
+
+

@@ -1,0 +1,204 @@
+//------------------------------------------------------------------------------
+// version 1.1 July 24,2023
+//------------------------------------------------------------------------------
+#include <iostream>
+#include <fstream>
+#include <cstdlib>
+#include <string>
+#include <math.h>
+using namespace std;
+
+int  sim_ha_cout(int a,int b,int delay);
+int  sim_ha_sout(int a,int b,int delay);
+int  sim_fa_cout(int a,int b,int c,int delay);
+int  sim_fa_sout(int a,int b,int c,int delay);
+int  sim_and(int a,int b,int delay);
+int  sim_or(int a,int b,int delay);
+int  sim_exor(int a,int b,int delay);
+int  sim_wire0(int a,int delay);
+int  sim_wire1(int a,int delay);
+int  sim_inv(int a,int delay);
+void netlist_BITSIZE0xBITSIZE0();
+void netlist(int *a,int *b,int *s,int delay);
+
+int main(int argc, char * const argv[]) {
+  netlist_BITSIZE0xBITSIZE0();
+  return 0;
+}
+
+//------------------------------------------
+//function : BITSIZE0xBITSIZE0
+//------------------------------------------
+void netlist_BITSIZE0xBITSIZE0(){
+  int i,j,k;
+  int loopnum;
+  int delay;
+
+  int a[BITSIZE0];
+  int b[BITSIZE0];
+  int s[BITSIZE0*2];
+  long int atmp,btmp;
+  long int ain,bin,sout,sout2;
+  long int bitpower;
+
+  loopnum=10000;
+  
+  bitpower=1;
+  for (k=0; k<BITSIZE0; k++) {
+    bitpower=bitpower*2;
+  }
+
+  delay=0;
+  unsigned int now=(unsigned int)time(NULL);
+  srand(now);
+  for (i=0; i<(loopnum+1); i++) {
+    if(i==loopnum){
+      delay=1;
+      ain=0;
+      bin=0;
+    }
+    else{
+      //input 
+      ain=rand()%bitpower;
+      bin=rand()%bitpower;
+      sout=ain*bin;
+    }
+
+    //bit epansion
+    atmp=ain;
+    btmp=bin;
+    for (k=0; k<BITSIZE0; k++) {
+      a[k]=atmp%2;
+      atmp=atmp/2;
+      b[k]=btmp%2;
+      btmp=btmp/2;
+    }
+
+    //-----------------
+    // netlist body
+    //-----------------
+    netlist(a,b,s,delay);
+
+    if(i==loopnum){ 
+      //delay
+      for (k=0; k<BITSIZE0*2; k++) {
+        if(k%4==0){
+          printf("sum delay s[%d]:%d ",k,s[k]);
+        }
+        else if(k%4==3){
+          printf("s[%d]:%d \n",k,s[k]);
+        }
+        else{
+          printf("s[%d]:%d ",k,s[k]);
+        }
+      }
+      printf("\n");
+    }
+    else{
+      //logic 
+      sout2=0;
+      for (k=(BITSIZE0*2-1); k>=0; k--) {
+        sout2=2*sout2+s[k];
+      }
+      printf("   ain: %3ld  bin: %3ld  sout: %3ld    sout2: %3ld",ain,bin,sout,sout2);
+      if(sout==sout2){printf("   allPASS\n");}
+      else{printf("   allFAIL\n");}
+    }
+  }
+}
+
+int sim_and(int a,int b,int delay){
+  int y;
+  if(delay==0){
+    y=a&b;
+    return y;
+  }
+  else{
+    if(a>=b){y=a+1000;}
+    else{y=b+1000;}
+    return y;
+  }
+}
+int sim_or(int a,int b,int delay){
+  int y;
+  if(delay==0){
+    y=a|b;
+    return y;
+  }
+  else{
+    if(a>=b){y=a+1000;}
+    else{y=b+1000;}
+    return y;
+  }
+}
+int sim_wire0(int a,int delay){
+  int y;
+  if(delay==0){
+    y=a;
+    return y;
+  }
+  else{
+    y=a;
+    return y;
+  }
+}
+int sim_wire1(int a,int delay){
+  int y;
+  if(delay==0){
+    y=a;
+    return y;
+  }
+  else{
+    y=a;
+    return y;
+  }
+}
+int sim_inv(int a,int delay){
+  int y;
+  if(delay==0){
+    y=~a;
+    return y;
+  }
+  else{
+    y=a+1000;
+    return y;
+  }
+}
+int sim_exor(int a,int b,int delay){
+  int y;
+  int n0,n1,n2;
+  n0=sim_or(a, b,delay);
+  n1=sim_and(a, b,delay);
+  n2=sim_inv(n1,delay);
+  y=sim_and(n0, n2,delay);
+  return y;
+}
+int sim_ha_cout(int a,int b,int delay){
+  int y;
+  y=sim_and(a, b,delay);
+  return y;
+}
+int sim_ha_sout(int a,int b,int delay){
+  int y;
+  int n0,n1;
+  y=sim_exor(a,b,delay);
+  return y;
+}
+int sim_fa_cout(int a,int b,int c,int delay){
+  int y;
+  int n0,n1,n2;
+  n0=sim_and(c, b,delay);
+  n1=sim_or(c, b,delay);
+  n2=sim_and(n1, a,delay);
+  y=sim_or(n0, n2,delay);
+  return y;
+}
+int sim_fa_sout(int a,int b,int c,int delay){
+  int y;
+  int n0,n1;
+  n0=sim_exor(c,b,delay);
+  y=sim_exor(n0,a,delay);
+  return y;
+}
+
+

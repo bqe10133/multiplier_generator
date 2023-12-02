@@ -1,0 +1,368 @@
+#-------------------------------------------------------------------------------
+# 1st     release   June 24,2023 : all codes from scratch
+# 2nd     release   June 25,2023 :
+# 3rd     release   July  2,2023 : layout.html modified 
+# 4th     release   July  9,2023 : all files modified 
+# 5th     release   July 10,2023 : gate count added 
+# 6th     release   July 12,2023 : layout_template2
+# 7th     release   July 15,2023 : all files modified 
+# 8th     release   July 16,2023 : output_p*_finalsum.txt modified
+# 9th     release   July 18,2023 : layout_template modified
+# 10th    release   July 20,2023 : version header 1.0
+# 11th    release   July 24,2023 : output_p*.txt format changed  version 1.1
+#-------------------------------------------------------------------------------
+#-------------------------------------------------------------------------------
+# version 1.1 July 24,2023
+#-------------------------------------------------------------------------------
+echo "$1 x $1 wallace(dadda) multiplier"
+#-------------------------------------------------------------------------------
+# (step 0) remove old *.o,output_p*.txt 
+#-------------------------------------------------------------------------------
+rm -f *.o output_p*.txt
+
+echo '(step 0) file(old *.o,output_p*.txt) is removed.'
+
+#-------------------------------------------------------------------------------
+# (step 1) input a,b
+#-------------------------------------------------------------------------------
+width=`echo "$1"|awk '{print $1}'`
+offsety=0
+
+echo -n > output_p0_ab.txt
+for ((i=0;i<$1;i++))
+do
+  echo "$i"|awk '{print "a_" $1 "_0 0 0 0 NONE NONE"}' >> output_p0_ab.txt
+done
+for ((i=0;i<$1;i++))
+do
+  echo "$i"|awk '{print "b_" $1 "_1 0 0 0 NONE NONE"}' >> output_p0_ab.txt
+done
+
+#layout
+sed 's/_/ /' output_p0_ab.txt|sed 's/_/ /'|awk '{print $1,$2,$3,$2*VAR0,$3*VAR0+VAR1,$6,$7,$8,$9,$10}' VAR0=20 VAR1=$offsety > tmp_layout0000
+awk '{print $1 "_" $2 "_" $3,$4,$5,$6,$7,$8,$9,$10}' tmp_layout0000 > output_p0_ab.txt
+offsety=`echo '2'|awk '{print $1*VAR+20}' VAR=20`
+
+echo '(step 1) file(output_p0_ab.txt) is generated.'
+
+#-------------------------------------------------------------------------------
+# (step 2) partial product 
+#-------------------------------------------------------------------------------
+length=`echo "$1"|awk '{print $1*2}'`
+
+echo -n > tmp_pp0000
+for ((i=0;i<$1;i++))
+do
+  for ((j=0;j<$1;j++))
+  do
+    echo "$j $i"|awk '{print $1+$2}'|awk '{print "p0",$1,VAR0,"0 0 1000 sim_and a_" VAR1 "_0 b_" VAR0 "_1"}' VAR0=$i VAR1=$j >> tmp_pp0000
+  done
+done
+
+echo -n > output_p0_tree.txt
+for ((i=0;i<$length;i++))
+do
+  awk '{if($2==VAR)print $0}' VAR=$i tmp_pp0000|cat -n|awk '{print $2 "_" $3 "_" $1-1,$5,$6,$7,$8,$9,$10,$11}' >> output_p0_tree.txt
+done
+
+#layout
+sed 's/_/ /' output_p0_tree.txt|sed 's/_/ /'|awk '{print $1,$2,$3,$2*VAR0,$3*VAR0+VAR1,$6,$7,$8,$9,$10}' VAR0=20 VAR1=$offsety > tmp_layout0000
+awk '{print $1 "_" $2 "_" $3,$4,$5,$6,$7,$8,$9,$10}' tmp_layout0000 > output_p0_tree.txt
+offsety=`echo "$offsety $width"|awk '{print $1+$2*VAR+20}' VAR=20`
+
+echo '(step 2) file(output_p0_tree.txt) is generated.'
+rm tmp_pp*
+
+#-------------------------------------------
+# (step3) tree
+#-------------------------------------------
+m=0
+g++ -o tree.o tree.cpp
+while true
+do
+  width1=`sed 's/_/ /' output_p"$m"_tree.txt|sed 's/_/ /'|awk '{print $3}'|sort -nr |uniq|head -1|awk '{print $1+1}'`
+  width2=`echo "$width1"|awk '{print $1-int($1/3)}'`
+  echo "$width1 to $width2 tree"
+  n=`echo "$m"|awk '{print $1+1}'`
+  echo 'Z' > tmp_tree0000
+
+  #--------------------------------------
+  #tree.cpp loop
+  #tmp_tree0000:y for the upper bit
+  #tmp_tree0001:y of the current bit
+  #--------------------------------------
+  for ((i=0;i<$length;i++))
+  do
+    sed 's/_/ /' output_p"$m"_tree.txt|sed 's/_/ /'|awk '{if($2==VAR)print $3,$6}' VAR=$i|sort -n|awk '{print $2,$1}' > tmp_tree0001
+    echo 'Z' >> tmp_tree0001
+    ./tree.o tmp_tree0001 $width2 $i $m tmp_tree0000 > tmp_tree0002_"$m"_"$i"
+    grep table tmp_tree0002_"$m"_"$i"|grep _cout|awk '{print $6}' > tmp_tree0000
+    echo 'Z' >> tmp_tree0000
+  done
+
+  grep table tmp_tree0002_"$m"_*|awk '{print $2,$4,$6,"0 0",$8,$9,$10,$11,$12}'|sort -n|awk '{print $1 "_" $2 "_" $3,$4,$5,$6,$7,$8,$9,$10}' > output_p"$n"_tree.txt
+  m=`echo "$m"|awk '{print $1+1}'` #m++
+
+  if [ "$width2" != 2 ]; then
+    #layout
+    sed 's/_/ /' output_p"$n"_tree.txt|sed 's/_/ /'|awk '{print $1,$2,$3,$2*VAR0,$3*VAR0+VAR1,$6,$7,$8,$9,$10}' VAR0=20 VAR1=$offsety > tmp_layout0000
+    awk '{print $1 "_" $2 "_" $3,$4,$5,$6,$7,$8,$9,$10}' tmp_layout0000 > output_p"$n"_tree.txt
+    offsety=`echo "$offsety $width2"|awk '{print $1+$2*VAR+20}' VAR=20`
+  fi
+
+  if [ "$width2" = 2 ]; then
+    #------------------------------------
+    # the last tree:go to the final sum
+    #------------------------------------
+    #padding input
+    sed 's/_/ /' output_p"$n"_tree.txt|sed 's/_/ /' > tmp_tree0003
+    for ((i=0;i<$length;i++))
+    do
+      for ((j=0;j<2;j++))
+      do
+        hit=`grep "p$n $i $j" tmp_tree0003|wc -l|awk '{print $1}'`
+        echo "$hit"|awk '{if($1==0)print "p" VAR2,VAR0,VAR1,"0 0 0 sim_wire1 0"}' VAR0=$i VAR1=$j VAR2=$n >> tmp_tree0003
+      done
+    done
+    sort -n tmp_tree0003|awk '{print $1 "_" $2 "_" $3,$4,$5,$6,$7,$8,$9,$10}' > output_p"$n"_tree.txt
+    cat output_p"$n"_tree.txt|sed "s/p$n/pe/g" >  output_pe_tree.txt
+    rm output_p"$n"_tree.txt
+
+    #layout
+    sed 's/_/ /' output_pe_tree.txt|sed 's/_/ /'|awk '{print $1,$2,$3,$2*VAR0,$3*VAR0+VAR1,$6,$7,$8,$9,$10}' VAR0=20 VAR1=$offsety > tmp_layout0000
+    awk '{print $1 "_" $2 "_" $3,$4,$5,$6,$7,$8,$9,$10}' tmp_layout0000 > output_pe_tree.txt
+    offsety=`echo "$offsety $width2"|awk '{print $1+$2*VAR+20}' VAR=20`
+
+    break
+  fi
+
+done
+
+echo '(step 3) file(output_p*_tree.txt) is generated.'
+rm tmp_tree*
+
+#-------------------------------------------
+# (step4) finalsum
+#-------------------------------------------
+for ((i=0;i<($length/4);i++))
+do
+  #---------------------
+  #4bit CLA 
+  #---------------------
+  offset0=`echo "$i"|awk '{print $1*4+0}'`
+  offset1=`echo "$i"|awk '{print $1*4+1}'`
+  offset2=`echo "$i"|awk '{print $1*4+2}'`
+  offset3=`echo "$i"|awk '{print $1*4+3}'`
+  offset4=`echo "$i"|awk '{print $1*4-1}'`
+  grep -v ^# cla4b_template|sed "s/BIT0/$offset0/g"|sed "s/BIT1/$offset1/g"|sed "s/BIT2/$offset2/g"|sed "s/BIT3/$offset3/g"|sed "s/BIT4/$offset4/g"|
+  sed 's/f_\-1_7/fzero/g' > output_p"$i"_finalsum.txt
+
+  #layout
+  sed 's/_/ /' output_p"$i"_finalsum.txt|sed 's/_/ /'|awk '{print $1,$2,$3,$2*VAR0,$3*VAR0+VAR1,$6,$7,$8,$9,$10}' VAR0=20 VAR1=$offsety > tmp_layout0000
+  awk '{print $1 "_" $2 "_" $3,$4,$5,$6,$7,$8,$9,$10}' tmp_layout0000 > output_p"$i"_finalsum.txt
+done
+
+echo '(step 4) file(output_p*_finalsum.txt) is generated.'
+
+#-------------------------------------------
+# (step 5) netlist
+#-------------------------------------------
+# input bridge a[0]->a_0_0
+echo -n > tmp_netlist1000
+for ((i=0;i<$width;i++))
+do
+  echo "$i"|awk '{print "int a_" $1 "_0;"}' >> tmp_netlist1000
+  echo "$i"|awk '{print "int b_" $1 "_1;"}' >> tmp_netlist1000
+done
+for ((i=0;i<$width;i++))
+do
+  echo "$i"|awk '{print "a_" $1 "_0=a[" $1 "];"}' >> tmp_netlist1000
+  echo "$i"|awk '{print "b_" $1 "_1=b[" $1 "];"}' >> tmp_netlist1000
+done
+
+# output bridge s_0_8->s[0]
+echo -n > tmp_netlist1001
+for ((i=0;i<$length;i++))
+do
+  echo "$i"|awk '{print "s[" $1 "]=s_" $1 "_8;"}' >> tmp_netlist1001
+done
+
+# netlist(file order is important)
+echo -n > tmp_netlist2000
+for ((i=0;i<$m;i++))
+do
+  cat output_p"$i"_tree.txt >> tmp_netlist2000
+done
+cat output_pe_tree.txt >> tmp_netlist2000
+for ((i=0;i<($length/4);i++))
+do
+  cat output_p"$i"_finalsum.txt >> tmp_netlist2000
+done
+awk '{print "int",$1 ";"}' tmp_netlist2000 > tmp_netlist2001     
+awk '{print $1 "=" $5 "(" $6 "," $7 "," $8 ",delay);"}' tmp_netlist2000|sed 's/,,,/,/g'|sed 's/,,/,/g' >> tmp_netlist2001
+echo 'void netlist(int *a,int *b,int *s,int delay){' > output_netlist.txt
+echo 'int fzero=0;' >> output_netlist.txt
+cat tmp_netlist1000 tmp_netlist2001 tmp_netlist1001 >> output_netlist.txt
+echo '  if(delay==1){' >> output_netlist.txt
+grep = tmp_netlist2001|sed 's/=/ /g'|awk '{print "    printf(\"" "gate_delay " $1, "%d\\n\",",$1 ");"}' >> output_netlist.txt
+echo '}}' >> output_netlist.txt
+
+echo '(step 5) file(output_netlist.txt) is generated.'
+rm tmp_netlist*
+
+#-------------------------------------------
+# (step 6) simulation
+#-------------------------------------------
+sed "s/BITSIZE0/$width/g" multiplier_tb_template > tmp_simulation0000
+cat tmp_simulation0000 output_netlist.txt > multiplier_tb.cpp
+
+g++ -o multiplier_tb.o multiplier_tb.cpp
+./multiplier_tb.o > simulation.log
+
+echo '(step 6) file(multiplier_tb.o) is generated.'
+echo ''
+grep PASS simulation.log|wc -l|awk '{print "PASS num is " $1}'
+grep FAIL simulation.log|wc -l|awk '{print "FAIL num is " $1}'
+echo ''
+echo 'logic simulation is done. simulation.log is generated.'
+echo ''
+grep 'sum delay' simulation.log
+
+rm tmp_simulation*
+
+#-------------------------------------------
+# (step 7) critical path
+#-------------------------------------------
+#search file
+grep gate_delay simulation.log|awk '{print $3,$2}' > tmp_critical0000
+grep sim_ output_netlist.txt|sed 's/=/ /g'|sed 's/(/ /g'|sed 's/)/ /g'|sed 's/\,/ /g'|sed 's/\;/ /g'|sed 's/delay//g'|sed 's/ 0/ NONE/g'|awk '{print $0,"NONE NONE"}' > tmp_critical0001
+cp tmp_critical0000 tmp_critical0002
+
+echo -n > output_critical.txt
+while true
+do
+  node=`sort -nr tmp_critical0002|head -1|awk '{print $2}'`
+  echo -n "p $node " >> output_critical.txt
+  grep "$node" tmp_critical0000|awk '{print $1}' >> output_critical.txt
+  send=`grep "$node" tmp_critical0000|awk '{print $1}'`
+  send2=`grep "$node" tmp_critical0000|grep 'p0'|wc -l|awk '{print $1}'`
+  node0=`grep "$node" tmp_critical0001|awk '{if($1==VAR)print $0}' VAR=$node|awk '{print $3}'`
+  node1=`grep "$node" tmp_critical0001|awk '{if($1==VAR)print $0}' VAR=$node|awk '{print $4}'`
+  node2=`grep "$node" tmp_critical0001|awk '{if($1==VAR)print $0}' VAR=$node|awk '{print $5}'`
+  echo "c $node0" >> output_critical.txt
+  echo "c $node1" >> output_critical.txt
+  echo "c $node2" >> output_critical.txt
+  grep "$node0" tmp_critical0000 > tmp_critical1000
+  grep "$node1" tmp_critical0000 >> tmp_critical1000
+  grep "$node2" tmp_critical0000 >> tmp_critical1000
+  cp tmp_critical1000 tmp_critical0002
+
+  if [ "$send" = 1000 ]; then
+    if [ "$send2" = 1 ]; then
+      break
+    fi
+  fi
+done
+
+awk '{if($1=="p")print $3,$2}' output_critical.txt > output_criticalpath.txt
+egrep 'a_|b_' output_critical.txt|awk '{print "0", $2}' >> output_criticalpath.txt 
+
+echo ''
+echo 'critical path is... (delay:AND=OR=INV=1000)'
+echo 'delay signal name'
+cat output_criticalpath.txt|awk '{print $1,$2}'
+
+echo ''
+echo '(step 7) file(output_critical.txt,output_criticalpath.txt) is generated.'
+rm tmp_critical*
+
+#-------------------------------------------
+# (step 8) layout
+#-------------------------------------------
+# ab,p0,p1,,,
+offset=250
+cat output_p0_ab.txt output_p*_tree.txt output_p*_finalsum.txt > output_layout.txt
+awk '{print $2,$3,$5}' output_layout.txt|
+sed 's/NONE/#888888/g'|sed 's/sim_and/#880000/g'|sed 's/sim_wire0/#008888/g'|sed 's/sim_wire1/#000000/g'|sed 's/0;/#000000/g'|
+sed 's/sim_or/#008800/g'|sed 's/sim_exor/#000088/g'|
+sed 's/sim_ha_sout/#FFFFF0/g'|sed 's/sim_ha_cout/#888800/g'|sed 's/sim_fa_sout/#FFFFF1/g'|sed 's/sim_fa_cout/#880088/g'  > tmp_layout3000
+awk '{print "ctx.fillStyle=\"" $3 "\";","ctx.fillRect(" $1 "," $2+VAR1 "," VAR0 "," VAR0 ");"}' VAR0=16 VAR1=$offset tmp_layout3000 > output_layout.txt
+
+#fa,ha modification 
+egrep 'FFFFF0|FFFFF1' output_layout.txt|sed 's/16\,16/20\,16/g'> tmp_layout5000
+sed 's/FFFFF0/888800/g' tmp_layout5000|sed 's/FFFFF1/880088/g'> tmp_layout5001
+grep -v 'FFFFF0' output_layout.txt |grep -v 'FFFF1'> tmp_layout5002
+cat tmp_layout5001 tmp_layout5002 > output_layout.txt
+
+#finalsum rectangle
+for ((i=0;i<($length/4);i++))
+do
+  echo 'ctx.beginPath();' >>output_layout.txt
+  echo "$i"|awk '{print "ctx.moveTo(" ($1+0)*4*VAR2 "," VAR0+VAR1     ");"}' VAR0=$offset VAR1=$offsety VAR2=20 >>output_layout.txt
+  echo "$i"|awk '{print "ctx.lineTo(" ($1+1)*4*VAR2 "," VAR0+VAR1     ");"}' VAR0=$offset VAR1=$offsety VAR2=20 >>output_layout.txt
+  echo "$i"|awk '{print "ctx.lineTo(" ($1+1)*4*VAR2 "," VAR0+VAR1+180 ");"}' VAR0=$offset VAR1=$offsety VAR2=20 >>output_layout.txt
+  echo "$i"|awk '{print "ctx.lineTo(" ($1+0)*4*VAR2 "," VAR0+VAR1+180 ");"}' VAR0=$offset VAR1=$offsety VAR2=20 >>output_layout.txt
+  echo 'ctx.strokeStyle="white";' >>output_layout.txt
+  echo 'ctx.lineWidth=1;' >>output_layout.txt
+  echo 'ctx.stroke();' >>output_layout.txt
+done
+
+#gate count
+echo ''
+echo 'gate count is...'
+gate_and=`grep sim_and output_netlist.txt|wc -l|awk '{print $1}'`
+echo "AND(1gate) $gate_and"
+gate_or=`grep sim_or output_netlist.txt|wc -l|awk '{print $1}'`
+echo "OR(1gate)  $gate_or"
+gate_exor=`grep sim_exor output_netlist.txt|wc -l|awk '{print $1}'`
+echo "EXOR(4gate)  $gate_exor"
+gate_fa=`grep sim_fa output_netlist.txt|wc -l|awk '{print $1/2}'`
+echo "Full Adder(10gate)  $gate_fa"
+gate_ha=`grep sim_ha output_netlist.txt|wc -l|awk '{print $1/2}'`
+echo "Half Adder(4gate)  $gate_ha"
+echo "ctx.font='14px Helvetica';" >>output_layout.txt
+echo 'ctx.fillStyle="#ffffff";' >>output_layout.txt
+
+echo "AND(1gate)  $gate_and" |awk '{print "ctx.fillText(\"" $1 "=1x" $2 "\", 20,130);"}' >>output_layout.txt
+echo "OR(1gate)   $gate_or"  |awk '{print "ctx.fillText(\"" $1 "=1x" $2 "\",160,130);"}' >>output_layout.txt
+echo "EXOR(4gate) $gate_exor"|awk '{print "ctx.fillText(\"" $1 "=4x" $2 "\",300,130);"}' >>output_layout.txt
+echo "FullAdder(10gate) $gate_fa"|awk '{print "ctx.fillText(\"" $1 "=10x" $2 "\",460,130);"}' >>output_layout.txt
+echo "HalfAdder(4gate) $gate_ha"|awk '{print "ctx.fillText(\"" $1 "=4x" $2 "\",660,130);"}' >>output_layout.txt
+gate_total=`echo "$gate_and $gate_or $gate_exor $gate_fa $gate_ha"|awk '{print "gate_total",$1+$2+$3*4+$4*10+$5*4}'`
+echo "$gate_total"
+echo ''
+echo "total_gate_count  $gate_total" |awk '{print "ctx.fillText(\"" $1 "=" $3 "\", 840,130);"}' >>output_layout.txt
+
+#critical path line
+echo 'ctx.beginPath();' >>output_layout.txt
+snode=`grep ^p output_critical.txt|head -1|awk '{print $2}'`
+sx=`grep ^p output_critical.txt|head -1|awk '{print $2}'|sed 's/s_//g'|sed 's/_8//g'|awk '{print $1*VAR}' VAR=20`
+echo "$sx $offsety $snode" > tmp_layout4000
+awk '{print "ctx.moveTo(" $1 "," $2+VAR+180 ");"}' VAR=$offset tmp_layout4000 >>output_layout.txt
+awk '{print $2,$1}' output_criticalpath.txt|egrep '^p|^a' > tmp_layout6000
+awk '{print "grep \"^" $1 "\" output_p*.txt"}' tmp_layout6000 > tmp_layout6001 
+chmod 755 tmp_layout6001
+./tmp_layout6001 > tmp_layout6002
+awk '{print "ctx.lineTo(" $2 "," $3+VAR ");"}' VAR=$offset tmp_layout6002 >>output_layout.txt
+echo 'ctx.strokeStyle="white";' >>output_layout.txt
+echo 'ctx.lineWidth=2;' >>output_layout.txt
+echo 'ctx.stroke();' >>output_layout.txt
+
+#critical path signal name
+echo "ctx.font='14px Helvetica';" >>output_layout.txt
+echo 'ctx.fillStyle="#ffffff";' >>output_layout.txt
+awk '{print "ctx.fillText(\"" $3 "\","  $1+5 "," $2+VAR+180 ");"}' VAR=$offset tmp_layout4000 >>output_layout.txt
+sed 's/:/ /g' tmp_layout6002|awk '{print "ctx.fillText(\"" $2 "\","  $3+5 "," $4+VAR ");"}' VAR=$offset >>output_layout.txt
+head -1 output_criticalpath.txt|awk '{print "ctx.fillText(\"gate delay=" $1,"   ",$2 "\", 20,180);"}' >>output_layout.txt
+
+#layout.html
+sed -n '1,109p' layout_template > tmp_layout7000
+sed -n '110,125p' layout_template > tmp_layout7001
+cat tmp_layout7000 output_layout.txt tmp_layout7001 > layout.html
+
+echo '(step 8) file(layout.html) is generated.'
+rm tmp_layout*
+
+
+
+
